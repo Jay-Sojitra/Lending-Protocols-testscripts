@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-
 interface ILendingPool {
     // Interest Rate Config
     // The utilization rate and borrowing rate are expressed in RAY
@@ -63,8 +62,6 @@ interface ILendingPool {
         uint256 reserveId
     ) external view returns (uint256);
 
-  
-
     // struct PositionStatus {
     //     uint256 reserveId;
     //     address user;
@@ -96,6 +93,20 @@ interface ILendingPool {
         address onBehalfOf,
         uint16 referralCode
     ) external payable returns (uint256);
+
+    function depositAndStake(
+        uint256 reserveId,
+        uint256 amount,
+        address onBehalfOf,
+        uint16 referralCode
+    ) external payable returns (uint256);
+
+    function unStakeAndWithdraw(
+        uint256 reserveId,
+        uint256 eTokenAmount,
+        address to,
+        bool receiveNativeETH
+    ) external returns (uint256);
 
     /**
      * @dev User redeems eTokens in exchange for the underlying asset
