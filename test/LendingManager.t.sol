@@ -277,7 +277,7 @@ contract LendingManagerTest is Test {
 
         // Unstake and withdraw
         remainingETokenBalance = etoken.balanceOf(STAKING_REWARD);
-        console.log("eToken amount before withdraw:", remainingETokenBalance);
+        console.log("eToken balance in Staking reward contract before withdraw:", remainingETokenBalance);
 
         console.log(
             "USDC amount before withdraw",
@@ -307,7 +307,7 @@ contract LendingManagerTest is Test {
 
         // Check that the eToken balance in the LendingManager contract decreased accordingly
         remainingETokenBalance = etoken.balanceOf(STAKING_REWARD);
-        console.log("eToken amount after withdraw:", remainingETokenBalance);
+        console.log("eToken balance in Staking reward contract after withdraw:", remainingETokenBalance);
 
         vm.warp(block.timestamp + FIVE_DAYS_IN_SECONDS);
 
