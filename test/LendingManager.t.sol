@@ -267,10 +267,11 @@ contract LendingManagerTest is Test {
             remainingETokenBalance
         );
         // Calculate the eToken amount for withdrawal
-        uint256 eTokenAmount = (AMOUNT * 1e18) / exchangeRate;
-
-
-        eTokenAmount = remainingETokenBalance - etokenBeforeDeposit;
+        uint256 eTokenAmount = remainingETokenBalance - etokenBeforeDeposit;
+        console.log(
+            "increased etoken balance after deposit:",
+            eTokenAmount - (AMOUNT * 1e18) / exchangeRate
+        );
 
         console.log("Calculated eToken amount for withdrawal:", eTokenAmount);
 
