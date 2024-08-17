@@ -236,6 +236,7 @@ contract LendingManagerTest is Test {
     function testUnStakeAndWithdrawFromExtraFi() public {
         // Initial deposit and stake
         vm.startPrank(USER);
+        uint256 etokenBeforeDeposit = etoken.balanceOf(STAKING_REWARD);
         console.log(
             "etoken balance before deposit",
             etoken.balanceOf(STAKING_REWARD)
@@ -267,8 +268,9 @@ contract LendingManagerTest is Test {
         );
         // Calculate the eToken amount for withdrawal
         uint256 eTokenAmount = (AMOUNT * 1e18) / exchangeRate;
-        console.log("increased etoken balance", 889012299778 - eTokenAmount);
-        eTokenAmount = 889012299778;
+
+
+        eTokenAmount = remainingETokenBalance - etokenBeforeDeposit;
 
         console.log("Calculated eToken amount for withdrawal:", eTokenAmount);
 
