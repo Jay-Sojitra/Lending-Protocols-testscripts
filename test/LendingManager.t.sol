@@ -242,6 +242,19 @@ contract LendingManagerTest is Test {
             etoken.balanceOf(STAKING_REWARD)
         );
         token.approve(address(lendingManager), AMOUNT);
+
+        uint256 lendingManagerETokenBalance = lendingManager
+            .getETokenBalanceInStakingReward(STAKING_REWARD);
+
+        console.log(
+            "eToken balance in rewardManager contract before deposit:",
+            etoken.balanceOf(address(lendingManager))
+        );
+        console.log(
+            "eToken balance in Staking Reward contract for LendingManager before deposit:",
+            lendingManagerETokenBalance
+        );
+
         lendingManager.depositAndStakeToExtraFi(
             RESERVE_ID,
             AMOUNT,
@@ -249,9 +262,28 @@ contract LendingManagerTest is Test {
             LENDING_POOL_EXTRAFI
         );
         vm.stopPrank();
+        lendingManagerETokenBalance = lendingManager
+            .getETokenBalanceInStakingReward(STAKING_REWARD);
+
+        console.log(
+            "eToken balance in Staking Reward contract for LendingManager after deposit:",
+            lendingManagerETokenBalance
+        );
+
+        console.log(
+            "eToken balance in rewardManager contract after deposit:",
+            etoken.balanceOf(address(lendingManager))
+        );
 
         // Simulate time passing for potential interest accrual
         vm.warp(block.timestamp + DAY_IN_SECONDS);
+        lendingManagerETokenBalance = lendingManager
+            .getETokenBalanceInStakingReward(STAKING_REWARD);
+
+        console.log(
+            "eToken balance in Staking Reward contract for LendingManager after deposit and after one day:",
+            lendingManagerETokenBalance
+        );
 
         // Get the current exchange rate from the lending pool
         vm.startPrank(USER);
@@ -277,11 +309,23 @@ contract LendingManagerTest is Test {
 
         // Unstake and withdraw
         remainingETokenBalance = etoken.balanceOf(STAKING_REWARD);
-        console.log("eToken balance in Staking reward contract before withdraw:", remainingETokenBalance);
+        console.log(
+            "eToken balance in Staking reward contract before withdraw:",
+            remainingETokenBalance
+        );
 
         console.log(
             "USDC amount before withdraw",
             token.balanceOf(address(lendingManager)) / 10 ** 6
+        );
+        vm.warp(block.timestamp + FIVE_DAYS_IN_SECONDS);
+
+        lendingManagerETokenBalance = lendingManager
+            .getETokenBalanceInStakingReward(STAKING_REWARD);
+
+        console.log(
+            "eToken balance in Staking Reward contract for LendingManager after deposit and after five day:",
+            lendingManagerETokenBalance
         );
 
         uint256 withdrawnAmount = lendingManager.unStakeAndWithdrawFromExtraFi(
@@ -307,7 +351,10 @@ contract LendingManagerTest is Test {
 
         // Check that the eToken balance in the LendingManager contract decreased accordingly
         remainingETokenBalance = etoken.balanceOf(STAKING_REWARD);
-        console.log("eToken balance in Staking reward contract after withdraw:", remainingETokenBalance);
+        console.log(
+            "eToken balance in Staking reward contract after withdraw:",
+            remainingETokenBalance
+        );
 
         vm.warp(block.timestamp + FIVE_DAYS_IN_SECONDS);
 

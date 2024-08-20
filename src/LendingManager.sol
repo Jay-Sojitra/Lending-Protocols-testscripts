@@ -3,10 +3,12 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interfaces/aave/IPool.sol";
+import "./interfaces/aave/IAaveIncentivesController.sol";
 import "./interfaces/extrafi/ILendingPool.sol";
 import "./interfaces/extrafi/IStakingRewards.sol";
 import "./interfaces/moonwell/IMtoken.sol";
 import "./interfaces/moonwell/IComptroller.sol";
+import {console} from "forge-std/Test.sol";
 
 /**
  * @title LendingManager
@@ -241,5 +243,95 @@ contract LendingManager {
             0xE61662C09c30E1F3f3CbAeb9BC1F13838Ed18957
         );
         rewards = rewardController.userRewardsClaimable(sender, rewardToken);
+    }
+
+    function claimRewardsFromAave(
+        address[] calldata assets,
+        uint256 amount,
+        address to,
+        address reward
+    ) external returns (uint256) {
+        // Address of the AAVE incentives controller (or rewards controller)
+        address incentivesController = 0x8164Cc65827dcFe994AB23944CBC90e0aa80bFcb;
+
+        bytes memory data = abi.encodeWithSignature(
+            "claimRewards(address[],uint256,address,address)",
+            assets,
+            amount,
+            to,
+            reward
+        );
+        // bytes memory data1 = abi.encodeWithSignature(
+        //     "claimAllRewardsToSelf(address[])",
+        //     assets
+        // );
+
+        // (bool success, bytes memory result) = incentivesController.delegatecall(
+        //     data
+        // );
+        // console.log("result", result);
+        (bool success, bytes memory result) = incentivesController.delegatecall(
+            data
+        );
+        console.log("susscess", success);
+        console.log("result length", result.length);
+        if (!success) {
+            if (result.length > 0) {
+                // This handles custom errors or low-level reverts
+                assembly {
+                    let returndata_size := mload(result)
+                    revert(add(32, result), returndata_size)
+                }
+            } else {
+                // assembly {
+                //     let returndata_size := mload(result)
+                //     // console.log('returndata_size',returndata_size);
+                //     revert(add(32, result), returndata_size)
+                // }
+                revert(
+                    "AAVE claimRewards delegatecall failed with unknown error"
+                );
+            }
+        }
+        // require(success, "Claim rewards failed");
+
+        // uint256 claimedAmount = IAaveIncentivesController(incentivesController)
+        //     .claimRewards(assets, amount, to, reward);
+        return 1;
+        // (address[] memory rewardsList, uint256[] memory claimedAmounts) = abi
+        //     .decode(result, (address[], uint256[]));
+
+        // console.log("claimedAmounts", claimedAmounts[0]);
+        // Return the claimedAmounts array
+        // return 1;
+        // return claimedAmounts[0];
+
+        // return abi.decode(result, (uint256));// for first function normal claimrewards
+    }
+
+    function getUserAccruedRewards(
+        address user,
+        address reward
+    ) external view returns (uint256) {
+        address incentivesController = 0x8164Cc65827dcFe994AB23944CBC90e0aa80bFcb;
+
+        bytes memory data = abi.encodeWithSignature(
+            "getUserAccruedRewards(address,address)",
+            user,
+            reward
+        );
+
+        (bool success, bytes memory result) = incentivesController.staticcall(
+            data
+        );
+        require(success, "Failed to get user accrued rewards");
+
+        return abi.decode(result, (uint256));
+    }
+
+    function getETokenBalanceInStakingReward(
+        address stakingRewardContract
+    ) external view returns (uint256) {
+        return IERC20(stakingRewardContract).balanceOf(address(this));
     }
 }
