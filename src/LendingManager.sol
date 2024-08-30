@@ -82,6 +82,13 @@ contract LendingManager {
         pool.mint(_amount);
     }
 
+    function depositToTropykus(uint256 _amount, address _lendingPool) public {
+        IMToken pool = IMToken(_lendingPool);
+        IERC20(usdc).transferFrom(msg.sender, address(this), _amount);
+        IERC20(usdc).approve(address(pool), _amount);
+        pool.mint(_amount);
+    }
+
     /**
      * @notice Withdraws the specified amount of USDC from the Aave or Seamless lending pool.
      * @param _amount The amount of USDC to withdraw.
@@ -151,6 +158,14 @@ contract LendingManager {
         // IERC20(usdc).transfer(_to, withdrawAmount);
     }
 
+    function withdrawFromTropykus(
+        uint256 _redeemTokens,
+        address _lendingPool
+    ) public returns (uint256) {
+        IMToken pool = IMToken(_lendingPool);
+        return pool.redeem(_redeemTokens);
+    }
+
     /**
      * @notice Gets the address of the aToken for the specified asset and lending pool.
      * @param _lendingPool The address of the lending pool.
@@ -214,7 +229,22 @@ contract LendingManager {
         rate = pool.supplyRatePerTimestamp();
     }
 
+    //need to change this
+    function getInterestRateOfTropykus(
+        address lendingPool
+    ) public view returns (uint256 rate) {
+        IMToken pool = IMToken(lendingPool);
+        rate = pool.supplyRatePerBlock();
+    }
+
     function exchangeRateOfMoonWell(
+        address lendingPool
+    ) public view returns (uint256 rate) {
+        IMToken pool = IMToken(lendingPool);
+        rate = pool.exchangeRateStored();
+    }
+
+    function exchangeRateOfTropykus(
         address lendingPool
     ) public view returns (uint256 rate) {
         IMToken pool = IMToken(lendingPool);
@@ -306,7 +336,7 @@ contract LendingManager {
         // return 1;
         // return claimedAmounts[0];
 
-        // return abi.decode(result, (uint256));// for first function normal claimrewards
+        return abi.decode(result, (uint256)); // for first function normal claimrewards
     }
 
     function getUserAccruedRewards(
@@ -314,6 +344,60 @@ contract LendingManager {
         address reward
     ) external view returns (uint256) {
         address incentivesController = 0x8164Cc65827dcFe994AB23944CBC90e0aa80bFcb;
+
+        bytes memory data = abi.encodeWithSignature(
+            "getUserAccruedRewards(address,address)",
+            user,
+            reward
+        );
+
+        (bool success, bytes memory result) = incentivesController.staticcall(
+            data
+        );
+        require(success, "Failed to get user accrued rewards");
+
+        return abi.decode(result, (uint256));
+    }
+
+    function claimRewardsFromSeamLess(
+        address[] calldata assets,
+        uint256 amount,
+        address to,
+        address reward
+    ) external returns (uint256) {
+        // Address of the AAVE incentives controller (or rewards controller)
+        address incentivesController = 0x91Ac2FfF8CBeF5859eAA6DdA661feBd533cD3780;
+
+        bytes memory data = abi.encodeWithSignature(
+            "claimRewards(address[],uint256,address,address)",
+            assets,
+            amount,
+            to,
+            reward
+        );
+        // bytes memory data1 = abi.encodeWithSignature(
+        //     "claimAllRewardsToSelf(address[])",
+        //     assets
+        // );
+
+        // (bool success, bytes memory result) = incentivesController.delegatecall(
+        //     data
+        // );
+        // console.log("result", result);
+        (bool success, bytes memory result) = incentivesController.delegatecall( //change it to normal call because seamless is currently providing
+            data
+        );
+        console.log("susscess", success);
+        console.log("result length", result.length);
+
+        return 1;
+    }
+
+    function getUserAccruedRewardsForSeamless(
+        address user,
+        address reward
+    ) external view returns (uint256) {
+        address incentivesController = 0x91Ac2FfF8CBeF5859eAA6DdA661feBd533cD3780;
 
         bytes memory data = abi.encodeWithSignature(
             "getUserAccruedRewards(address,address)",

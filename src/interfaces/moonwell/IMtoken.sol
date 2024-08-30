@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 interface IMToken {
     function supplyRatePerTimestamp() external view returns (uint);
 
+    function supplyRatePerBlock() external view returns (uint);
+
     // // function exchangeRateCurrent() external  returns (uint);
 
     function exchangeRateStored() external view returns (uint);
