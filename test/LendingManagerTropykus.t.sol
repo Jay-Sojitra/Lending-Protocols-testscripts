@@ -13,6 +13,7 @@ contract LendingManagerTropykusTest is Test {
     uint256 tropykusExchangeRate;
 
     // Mainnet fork configuration
+    uint256 private constant DAY_IN_SECONDS = 86400;
     address LENDING_POOL_TROPYKUS = vm.envAddress("KDOC_ADDRESS");
     address DOC_ADDRESS = vm.envAddress("DOC_ADDRESS");
     address USER = vm.envAddress("USER");
@@ -35,7 +36,7 @@ contract LendingManagerTropykusTest is Test {
             LENDING_POOL_TROPYKUS
         );
         console.log("Tropykus INTEREST RATE", tropykusInterestRate);
-        console.log("Tropykus exchange RATE", tropykusExchangeRate);
+        console.log("INIT Tropykus exchange RATE", tropykusExchangeRate);
 
         // setting up supply/withdraw amount
         amount = 100 * (10 ** 18); // 100 doc
@@ -94,15 +95,14 @@ contract LendingManagerTropykusTest is Test {
         uint256 DOCBalanceContract = token.balanceOf(address(lendingManager));
         uint256 amountToWithdraw = 50000000000000000000;
 
-        console.log(
-            "ctoken balance of lendingManager before withdraw",
-            ctoken.balanceOf(address(lendingManager))
-        );
-
         tropykusExchangeRate = lendingManager.exchangeRateOfTropykus(
             LENDING_POOL_TROPYKUS
         );
-
+        console.log("after deposit tropykusExchangeRate", tropykusExchangeRate);
+        console.log(
+            "ctoken balance of contract before withdraw... ",
+            ctoken.balanceOf(address(lendingManager))
+        );
         uint256 atokenAmount = (amountToWithdraw * (10 ** 18)) /
             tropykusExchangeRate;
         lendingManager.withdrawFromTropykus(
@@ -142,6 +142,24 @@ contract LendingManagerTropykusTest is Test {
             ctoken.balanceOf(address(lendingManager)),
             "CTOKEN balance error: withdraw"
         );
+        console.log(
+            "ctoken balance of contract before one day... ",
+            ctoken.balanceOf(address(lendingManager))
+        );
+
+        vm.warp(block.timestamp + DAY_IN_SECONDS);
+
+        tropykusExchangeRate = lendingManager.exchangeRateOfTropykus(
+            LENDING_POOL_TROPYKUS
+        );
+
+        console.log("after one day tropykusExchangeRate", tropykusExchangeRate);
+
+        console.log(
+            "ctoken balance of contract after one day... ",
+            ctoken.balanceOf(address(lendingManager))
+        );
+
         vm.stopPrank();
     }
 
@@ -154,6 +172,19 @@ contract LendingManagerTropykusTest is Test {
         );
         uint256 amountToWithdraw = ctokenBalanceContract;
         console.log("before withdraw contract balance is ", DOCBalanceContract);
+
+        console.log(
+            "ctoken balance of contract before pass days... ",
+            ctoken.balanceOf(address(lendingManager))
+        );
+
+        vm.warp(block.timestamp + DAY_IN_SECONDS * 5);
+
+        console.log(
+            "ctoken balance of contract after pass some days... ",
+            ctoken.balanceOf(address(lendingManager))
+        );
+
         lendingManager.withdrawFromTropykus(
             amountToWithdraw,
             LENDING_POOL_TROPYKUS
